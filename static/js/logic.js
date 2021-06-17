@@ -18,24 +18,24 @@ var layer = L.tileLayer(layerUrl, {
 
 
 // Step 1: Retrieve data (decide what data) with API call --- Use the .then method as done before
-d3.json(queryUrl).then(function(monthData) {
+d3.json(queryUrl).then(function(weekData) {
 
-    var eqDepthColors = ["#FF2D00", "#FFAD00", "#D2FF00", "#52FF00", "00FF2D", "00FFAD"];
+    var eqDepthColors = ["#FF2D00", "#FFAD00", "#D2FF00", "#52FF00", "#00FF2D", "#00FFAD"];
 
     function colorPicker(eqDepth) {
-        if (eqDepth >= 100) {
+        if (eqDepth > 100) {
             return eqDepthColors[0];
         }
-        else if (eqDepth >= 80) {
+        else if (eqDepth > 80) {
             return eqDepthColors[1];
         }
-        else if (eqDepth >= 60) {
+        else if (eqDepth > 60) {
             return eqDepthColors[2];
         }
-        else if (eqDepth >= 40) {
+        else if (eqDepth > 40) {
             return eqDepthColors[3];
         }
-        else if (eqDepth >= 20) {
+        else if (eqDepth > 20) {
             return eqDepthColors[4];
         }
         else {
@@ -43,35 +43,58 @@ d3.json(queryUrl).then(function(monthData) {
         }
     }
 
+    // function radiusFix(magnitude) {
+    //     if (magnitude == 0) {
+    //         return 0.0000001;
+    //     }
+        
+    //     // return magnitude * 4;
+    // }
+
     // Step 3: Plot earthquake data markers
     // Size of marker: features.properties.mag
     // Color of marker: features.geometry[2] - 2 because 3rd in list
     function markerStyle(feature) {
         return {
             fillColor : colorPicker(feature.geometry.coordinates[2]), // Set conditions to create bins for the way earthquakes are colored
-            radius : feature.properties.mag,
+            radius : (feature.properties.mag * feature.properties.mag), // This lets us accentuate size for stronger earthquakes
             color : colorPicker(feature.geometry.coordinates[2]),
-            opacity : 0.25
+            opacity : 0.5
         };
     }
 
-    L.geoJSON(monthData, {
+    
+
+    L.geoJSON(weekData, {
         pointToLayer : function(feature, coord) {
             return L.circleMarker(coord);
-            
+    
         },
-        style : markerStyle
+        style : markerStyle,
+        // Step 4: Add a pop-up with extra info
+        // features.geometry.id - DONT INCLUDE Proved to be mostly unhelpful
+        // features.properties.time - DONT INCLUDE Time as provided incomprehensible
+        // features.properties.mag
+        // features.geometry.depth
+        // features.properties.type
+        // features.properties.place
+        // features.properties.url
+        onEachFeature: function(feature, layer) {
+            layer.bindPopup(
+                `
+                Magnitude: ${feature.properties.mag}<br>
+                Depth: ${feature.geometry.coordinates[2]}<br>
+                Type: ${feature.properties.type}<br>
+                Location: ${feature.properties.place}<br>
+                ${feature.properties.url}
+                `
+            )}
+      
     }).addTo(myMap);
 
 });
 
-// Step 4: Add a pop-up with extra info
-// features.geometry.id
-// features.properties.time
-// features.properties.mag
-// features.geometry.depth
-// features.properties.type
-// features.properties.url
+
 
 // Step 5: Add a legend that provides context for the map data
 // Size of marker: features.properties.mag - This is likely unnecessary... it might be visually clear but might be useful in contrast with color of marker
