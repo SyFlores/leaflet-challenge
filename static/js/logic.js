@@ -43,13 +43,6 @@ d3.json(queryUrl).then(function(weekData) {
         }
     }
 
-    // function radiusFix(magnitude) {
-    //     if (magnitude == 0) {
-    //         return 0.0000001;
-    //     }
-        
-    //     // return magnitude * 4;
-    // }
 
     // Step 3: Plot earthquake data markers
     // Size of marker: features.properties.mag
@@ -92,10 +85,28 @@ d3.json(queryUrl).then(function(weekData) {
       
     }).addTo(myMap);
 
+    // Step 5: Add a legend that provides context for the map data
+    // Size of marker: features.properties.mag - This is likely unnecessary... it might be visually clear but might be useful in contrast with color of marker
+    // Color of marker: features.geometry.depth
+
+    var legend = L.control({position: 'bottomright'});
+
+    legend.onAdd = function(myMap) {
+        var div = L.DomUtil.create('div', 'info legend'),
+            grades = [0, 20, 40, 60, 80, 100],
+            colors = eqDepthColors;
+    
+        for (var i = 0; i < grades.length; i++) {
+            div.innerHTML += '<i style="background:' + colors[i] + '"></i> ' + grades[i] + (grades[i + 1] ? '&ndash;' + grades[i + 1] + '<br>' : '+');
+        }
+    
+        return div;
+    };
+    legend.addTo(myMap);
+
+
 });
 
 
 
-// Step 5: Add a legend that provides context for the map data
-// Size of marker: features.properties.mag - This is likely unnecessary... it might be visually clear but might be useful in contrast with color of marker
-// Color of marker: features.geometry.depth
+
